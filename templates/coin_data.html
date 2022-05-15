@@ -1,0 +1,121 @@
+{% load custom_tags %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cryptocurrency Coins Data</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3"
+      crossorigin="anonymous"
+    />
+    <style>
+      .header {
+        position: sticky;
+        top: 0;
+      }
+      .table-wrapper {
+        width: 100%;
+        height: 80vh;
+        overflow: auto;
+      }
+      .form {
+        margin: auto;
+        width: 50%;
+      }
+      @media (max-width: 990px) {
+        .form {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <form class="row mt-3 mb-2 form">
+        <div class="input-group">
+          <input
+            class="form-control"
+            type="email"
+            name="email"
+            id="email"
+            placeholder="Email address, e.g. django_excel@johnspeaks.com"
+          />
+          <div class="input-group-append">
+            <button
+              title="Export data and send to my email address."
+              class="btn btn-success"
+              type="submit"
+            >
+              Export data
+            </button>
+          </div>
+        </div>
+      </form>
+      {% if coin_data %}
+      <div class="table-wrapper table-responsive">
+        <table class="table table-striped table-hover">
+          <thead style="position: sticky; top: 0" class="table-dark">
+            <tr>
+              <th class="header" scope="col">Logo</th>
+              <th class="header" scope="col">Name</th>
+              <th class="header" scope="col">Symbol</th>
+              <th class="header" scope="col">Rank</th>
+              <th class="header" scope="col">Current price</th>
+              <th class="header" scope="col">Price change</th>
+              <th class="header" scope="col">Market cap</th>
+              <th class="header" scope="col">Total supply</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for coin in coin_data %}
+            <tr>
+              <td><img src="{{coin.image_url}}" height="50" /></td>
+              <td class="align-middle">{{coin.name}}</td>
+              <td class="align-middle">{{coin.symbol | upper}}</td>
+              <td class="align-middle">{{coin.rank}}</td>
+              <td class="align-middle">{{coin.current_price | currency}}</td>
+              <td class="align-middle">
+                {{coin.price_change_within_24_hours | currency}}
+              </td>
+              <td class="align-middle">{{coin.market_cap | currency}}</td>
+              <td class="align-middle">{{coin.total_supply}}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <h3 class="text-center justify-content-center">
+        No coin data currently...
+      </h3>
+      {% endif %}
+
+      <footer class="py-1 my-2 d-flex justify-content-center">
+        <p class="text-center text-muted">
+          &copy; <span id="year"></span>
+          <a
+            href="http://github.com/sirneij"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Idogun, John owolabi
+          </a>
+        </p>
+        .
+      </footer>
+    </div>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
+      crossorigin="anonymous"
+    ></script>
+    <script>
+      document.getElementById('year').innerHTML = new Date().getFullYear();
+    </script>
+  </body>
+</html>
