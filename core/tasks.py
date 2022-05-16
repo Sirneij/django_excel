@@ -1,15 +1,17 @@
-import requests
-from celery import shared_task
 from io import BytesIO
 
-from core.models import Coins
+import requests
+from celery import shared_task
+from decouple import config
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, Protection
-from decouple import config
+
+from core.models import Coins
+from core.templatetags.custom_tags import currency
 
 
 @shared_task
-def get_coins_data_from_coingecko_and_store()->None:
+def get_coins_data_from_coingecko_and_store() -> None:
     BASE_URL = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=ngn&order=market_cap_desc&per_page=250&page=1&sparkline=false'
 
     coin_data = requests.get(BASE_URL).json()
@@ -24,8 +26,20 @@ def get_coins_data_from_coingecko_and_store()->None:
         coin.total_supply = data['total_supply']
         coin.save()
 
+
+# @shared_task
+# def get_image(img_url: str):
+#     response = requests.get(img_url).json()
+#     print(response)
+#     image_file = BytesIO(response.data)
+#     img = Image(image_file)
+#     img.height = 40
+#     img.width = 40
+#     return img
+
+
 @shared_task
-def export_data_to_excel(user_email:str)->None:
+def export_data_to_excel() -> None:
     excelfile = BytesIO()
     workbook = Workbook()
     workbook.remove(workbook.active)
@@ -39,8 +53,8 @@ def export_data_to_excel(user_email:str)->None:
     worksheet.sheet_properties.tabColor = '1072BA'
     worksheet.freeze_panes = 'I2'
 
-    coin_queryset = Coins.objects.all().order_by('-rank')
-    columns = ['Logo', 'Name', 'Symbol', 'Rank', 'Current price', 'Price change', 'Market cap', 'Total supply']
+    coin_queryset = Coins.objects.all().order_by('rank')
+    columns = ['Name', 'Symbol', 'Rank', 'Current price', 'Price change', 'Market cap', 'Total supply']
     row_num = 1
 
     # Assign the titles for each cell of the header
@@ -49,21 +63,19 @@ def export_data_to_excel(user_email:str)->None:
         cell.value = column_title
         cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
         cell.font = Font(bold=True)
-    # Iterate through all news
-    for index, new in enumerate(coin_queryset, 1):
+    # Iterate through all coins
+    for index, coin in enumerate(coin_queryset, 1):
         row_num += 1
 
         # Define the data for each cell in the row
         row = [
-            index,
-            str(new.id),
-            new.title,
-            new.story_type,
-            new.author,
-            new.created_by,
-            str(new.time),
-            new.text,
-            new.story_url,
+            coin.name,
+            f'{coin.symbol}'.upper(),
+            coin.rank,
+            currency(coin.current_price),
+            currency(coin.price_change_within_24_hours),
+            currency(coin.market_cap),
+            coin.total_supply,
         ]
 
         # Assign the data for each cell of the row
@@ -71,5 +83,4 @@ def export_data_to_excel(user_email:str)->None:
             cell = worksheet.cell(row=row_num, column=col_num)
             cell.value = cell_value
             cell.protection = Protection(locked=True)
-
     workbook.save(excelfile)

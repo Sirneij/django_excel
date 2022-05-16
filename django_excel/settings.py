@@ -135,8 +135,12 @@ CELERY_ACCEPT_CONTENT: list[str] = ['application/json']
 CELERY_TASK_SERIALIZER: str = 'json'
 CELERY_RESULT_SERIALIZER: str = 'json'
 CELERY_BEAT_SCHEDULE: dict[str, dict[str, Any]] = {
-    'get_coins_data_from_coingecko_and_store': {
-        'task': 'core.tasks.get_coins_data_from_coingecko_and_store',
+    # 'get_coins_data_from_coingecko_and_store': {
+    #     'task': 'core.tasks.get_coins_data_from_coingecko_and_store',
+    #     'schedule': crontab(minute='*/1'),
+    # },
+    'export_data_to_excel': {
+        'task': 'core.tasks.export_data_to_excel',
         'schedule': crontab(minute='*/1'),
     },
 }

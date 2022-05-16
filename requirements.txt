@@ -17,6 +17,7 @@ kombu==5.2.4
 mypy-extensions==0.4.3
 openpyxl==3.0.9
 pathspec==0.9.0
+Pillow==9.1.0
 platformdirs==2.5.2
 prompt-toolkit==3.0.29
 python-decouple==3.6
