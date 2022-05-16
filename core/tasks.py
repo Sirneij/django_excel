@@ -3,6 +3,9 @@ from io import BytesIO
 import requests
 from celery import shared_task
 from decouple import config
+from django.conf import settings
+from django.core.mail import EmailMessage
+from django.utils import timezone
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, Protection
 
@@ -27,19 +30,8 @@ def get_coins_data_from_coingecko_and_store() -> None:
         coin.save()
 
 
-# @shared_task
-# def get_image(img_url: str):
-#     response = requests.get(img_url).json()
-#     print(response)
-#     image_file = BytesIO(response.data)
-#     img = Image(image_file)
-#     img.height = 40
-#     img.width = 40
-#     return img
-
-
 @shared_task
-def export_data_to_excel() -> None:
+def export_data_to_excel(user_email: str) -> None:
     excelfile = BytesIO()
     workbook = Workbook()
     workbook.remove(workbook.active)
@@ -84,3 +76,12 @@ def export_data_to_excel() -> None:
             cell.value = cell_value
             cell.protection = Protection(locked=True)
     workbook.save(excelfile)
+    now = timezone.now()
+    message = EmailMessage(
+        f'Coin data as of {now.date().isoformat()}',
+        f'Generated at: {now.isoformat()}',
+        settings.DEFAULT_FROM_EMAIL,
+        [user_email],
+    )
+    message.attach('latest-coin-list.xlsx', excelfile.getvalue(), 'application/vnd.ms-excel')
+    message.send()

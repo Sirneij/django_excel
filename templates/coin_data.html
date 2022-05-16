@@ -37,6 +37,7 @@
   <body>
     <div class="container">
       <form class="row mt-3 mb-2 form">
+        {% csrf_token %}
         <div class="input-group">
           <input
             class="form-control"
@@ -44,6 +45,7 @@
             name="email"
             id="email"
             placeholder="Email address, e.g. django_excel@johnspeaks.com"
+            required
           />
           <div class="input-group-append">
             <button
@@ -116,6 +118,44 @@
     ></script>
     <script>
       document.getElementById('year').innerHTML = new Date().getFullYear();
+
+      document
+        .querySelector('.form')
+        .addEventListener('submit', async (event) => {
+          await event.preventDefault();
+          if (
+            !window.confirm(
+              'Are you sure you want to extract this data and send to the email provided?'
+            )
+          ) {
+            return;
+          }
+          const csrftoken = await document.querySelector(
+            '[name=csrfmiddlewaretoken]'
+          ).value;
+          const userEmail = await document.querySelector('[name=email]').value;
+          const data = await JSON.stringify({
+            userEmail: userEmail,
+          });
+
+          const response = await fetch("{% url 'core:extract_data' %}", {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': csrftoken,
+              'Content-Type': 'application/json',
+              charset: 'utf-8',
+            },
+            mode: 'same-origin',
+            body: data,
+          });
+          const responseData = await response.json();
+          if (response.ok) {
+            alert(responseData.message);
+            window.location = location.href;
+          } else {
+            alert(responseData.message);
+          }
+        });
     </script>
   </body>
 </html>

@@ -135,12 +135,44 @@ CELERY_ACCEPT_CONTENT: list[str] = ['application/json']
 CELERY_TASK_SERIALIZER: str = 'json'
 CELERY_RESULT_SERIALIZER: str = 'json'
 CELERY_BEAT_SCHEDULE: dict[str, dict[str, Any]] = {
-    # 'get_coins_data_from_coingecko_and_store': {
-    #     'task': 'core.tasks.get_coins_data_from_coingecko_and_store',
-    #     'schedule': crontab(minute='*/1'),
-    # },
-    'export_data_to_excel': {
-        'task': 'core.tasks.export_data_to_excel',
+    'get_coins_data_from_coingecko_and_store': {
+        'task': 'core.tasks.get_coins_data_from_coingecko_and_store',
         'schedule': crontab(minute='*/1'),
     },
 }
+
+# Email configuration
+ADMINS = (('Admin', config('EMAIL_HOST_USER', default='no-reply@django_excel.herokuapp.com')),)
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+    EMAIL_HOST = 'smtp.gmail.com'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+
+if not DEBUG:
+    import dj_database_url
+
+    # ==============================================================================
+    # SECURITY SETTINGS
+    # ==============================================================================
+
+    CSRF_COOKIE_SECURE = True
+    CSRF_COOKIE_HTTPONLY = True
+
+    SECURE_HSTS_SECONDS = 60 * 60 * 24 * 7 * 52  # one year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_SSL_REDIRECT = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+    SESSION_COOKIE_SECURE = True
+
+    db_from_env = dj_database_url.config(conn_max_age=500)
+    DATABASES['default'].update(db_from_env)
+
+    DATABASES['default']['ENGINE'] = 'django.contrib.gis.db.backends.postgis'
