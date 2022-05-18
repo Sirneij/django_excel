@@ -36,5 +36,5 @@ To run the tests, run the following in your terminal:
 (env) sirneij@pop-os ~/D/P/T/django_excel (main)> py.test --nomigrations --reuse-db -W error::RuntimeWarning --cov=core --cov-report=html tests/
 ```
 
-[1]: https://dev.to/sirneij/making-django-global-settings-dynamic-the-singleton-design-pattern-25en 'Making Django Global Settings Dynamic: The Singleton Design Pattern'
+[1]: https://dev.to/sirneij/django-and-openpyxl-extracting-and-sending-django-model-data-as-excel-file-xlsx-ll3 'Django and Openpyxl: Extracting and Sending Django model data as excel file (.xlsx)'
 [2]: https://django-excel-export.herokuapp.com/ 'Live app version'
