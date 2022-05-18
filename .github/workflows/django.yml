@@ -41,4 +41,4 @@ jobs:
         run: ./scripts/test_app.sh
       - name: Run Tests
         run: |
-          py.test -c pytest.ini -x --disable-socket -W error::RuntimeWarning --cov=core
+          py.test -c pytest.ini -x -W error::RuntimeWarning --cov=core
