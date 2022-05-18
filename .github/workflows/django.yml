@@ -41,4 +41,4 @@ jobs:
         run: ./scripts/test_app.sh
       - name: Run Tests
         run: |
-          py.test -c pytest.ini -x -W error::RuntimeWarning --cov=core
+          py.test --nomigrations --reuse-db -W error::RuntimeWarning --cov=core
