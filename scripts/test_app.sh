@@ -22,3 +22,4 @@ bandit -r core/
 
 # python static analysis
 prospector  --profile=.prospector.yml --path=core --ignore-patterns=static
+prospector  --profile=.prospector.yml --path=tests --ignore-patterns=static

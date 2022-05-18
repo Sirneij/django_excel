@@ -13,8 +13,14 @@ ignore-patterns:
 pylint:
   disable:
     - too-few-public-methods
+    - missing-docstring
+    - star-args
+    - consider-using-f-string
+    - too-few-public-methods
     - too-many-ancestors
     - inherit-non-class
+    - django-not-available
+    - django-not-configured
     - W0613 # allow Unused arguments
     - W0142 # allow Used * or ** magic
     - R0201 # disable no-self-use
