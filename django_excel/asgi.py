@@ -11,6 +11,9 @@ import os
 
 from django.core.asgi import get_asgi_application
 
+os.environ['LC_ALL'] = 'en_NG.UTF-8'
+os.environ['LANG'] = 'en_NG.UTF-8'
+
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'django_excel.settings')
 
 application = get_asgi_application()
