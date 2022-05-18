@@ -6,10 +6,6 @@ on:
   pull_request:
     branches: [main]
 
-env:
-  LC_ALL: en_NG.UTF-8
-  LANG: en_NG.UTF-8
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -44,5 +40,8 @@ jobs:
       - name: Run static analysis
         run: ./scripts/test_app.sh
       - name: Run Tests
+        env:
+          LC_ALL: en_NG.UTF-8
+          LANG: en_NG.UTF-8
         run: |
           py.test --nomigrations --reuse-db -W error::RuntimeWarning --cov=core
