@@ -12,3 +12,5 @@ coverage/
 .coverage*
 .cache
 .coverage.ubuntu.*
+
+.mypy_cache

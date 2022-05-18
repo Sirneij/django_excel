@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 
+import os
 from pathlib import Path
 from typing import Any
 
@@ -86,6 +87,14 @@ DATABASES: dict[str, Any] = {
     }
 }
 
+if os.environ.get('GITHUB_WORKFLOW'):
+    DATABASES['default']['ENGINE'] = 'django.db.backends.postgresql_psycopg2'
+    DATABASES['default']['NAME'] = 'github_actions'
+    DATABASES['default']['USER'] = 'postgres'
+    DATABASES['default']['PASSWORD'] = 'postgres'
+    DATABASES['default']['HOST'] = '127.0.0.1'
+    DATABASES['default']['PORT'] = 5432
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -129,8 +138,8 @@ STATIC_URL: str = 'static/'
 DEFAULT_AUTO_FIELD: str = 'django.db.models.BigAutoField'
 
 
-CELERY_BROKER_URL: str = config('CLOUDAMQP_URL', default='amqp://localhost')
-CELERY_RESULT_BACKEND: str = config('CLOUDAMQP_URL', default='')
+CELERY_BROKER_URL: str = config('REDIS_URL', default='amqp://localhost')
+CELERY_RESULT_BACKEND: str = config('REDIS_URL', default='')
 CELERY_ACCEPT_CONTENT: list[str] = ['application/json']
 CELERY_TASK_SERIALIZER: str = 'json'
 CELERY_RESULT_SERIALIZER: str = 'json'
@@ -179,5 +188,3 @@ if not DEBUG:
 
     db_from_env = dj_database_url.config(conn_max_age=500)
     DATABASES['default'].update(db_from_env)
-
-    DATABASES['default']['ENGINE'] = 'django.contrib.gis.db.backends.postgis'

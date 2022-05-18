@@ -15,9 +15,13 @@ from core.templatetags.custom_tags import currency
 
 @shared_task
 def get_coins_data_from_coingecko_and_store() -> None:
-    BASE_URL = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=ngn&order=market_cap_desc&per_page=250&page=1&sparkline=false'
+    """Fetch data from coingecko api and store."""
+    base_url = 'https://api.coingecko.com/api/v3/coins/'
+    market_currency_order = 'markets?vs_currency=ngn&order=market_cap_desc&'
+    per_page = 'per_page=250&page=1&sparkline=false'
+    final_url = f'{base_url}{market_currency_order}{per_page}'
 
-    coin_data = requests.get(BASE_URL).json()
+    coin_data = requests.get(final_url).json()
 
     for data in coin_data:
         coin, _ = Coins.objects.get_or_create(name=data['name'], symbol=data['symbol'])
@@ -32,6 +36,7 @@ def get_coins_data_from_coingecko_and_store() -> None:
 
 @shared_task
 def export_data_to_excel(user_email: str) -> None:
+    """Send extracted model data and save in excel and send to email."""
     excelfile = BytesIO()
     workbook = Workbook()
     workbook.remove(workbook.active)
@@ -56,7 +61,7 @@ def export_data_to_excel(user_email: str) -> None:
         cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
         cell.font = Font(bold=True)
     # Iterate through all coins
-    for index, coin in enumerate(coin_queryset, 1):
+    for _, coin in enumerate(coin_queryset, 1):
         row_num += 1
 
         # Define the data for each cell in the row

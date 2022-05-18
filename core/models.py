@@ -11,5 +11,6 @@ class Coins(models.Model):
     market_cap = models.DecimalField(decimal_places=2, max_digits=50, null=True)
     total_supply = models.DecimalField(decimal_places=2, max_digits=50, null=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Return model string representation."""
         return f'{self.name} - {self.symbol}'
