@@ -37,4 +37,4 @@ To run the tests, run the following in your terminal:
 ```
 
 [1]: https://dev.to/sirneij/making-django-global-settings-dynamic-the-singleton-design-pattern-25en 'Making Django Global Settings Dynamic: The Singleton Design Pattern'
-[2]: https://dynamic-settings.herokuapp.com/ 'Live app version'
+[2]: https://django-excel-export.herokuapp.com/ 'Live app version'
