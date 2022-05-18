@@ -21,4 +21,5 @@ def extract_and_send_coin_data_via_email(request: HttpRequest) -> JsonResponse:
         email = request_data['userEmail']
         export_data_to_excel.delay(email)
         return JsonResponse({'message': 'Coins data successfully extracted 💃!'}, status=200)
-    return JsonResponse({'message': 'Coins data failed to be extracted 😔!'}, status=500)
+    else:
+        return JsonResponse({'message': 'Coins data failed to be extracted 😔!'}, status=500)

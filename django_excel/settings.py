@@ -141,6 +141,11 @@ CELERY_BEAT_SCHEDULE: dict[str, dict[str, Any]] = {
     },
 }
 
+
+CELERY_ALWAYS_EAGER = True
+CELERY_EAGER_PROPAGATES = True
+BROKER_BACKEND = 'memory'
+
 # Email configuration
 ADMINS = (('Admin', config('EMAIL_HOST_USER', default='no-reply@django_excel.herokuapp.com')),)
 if DEBUG:
