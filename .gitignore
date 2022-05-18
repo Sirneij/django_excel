@@ -6,7 +6,7 @@ htmlcov
 __pycache__/
 .pytest_cache/
 *.pyc
-
+.idea
 # Coverage
 coverage/
 .coverage*
