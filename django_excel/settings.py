@@ -149,6 +149,10 @@ CELERY_BEAT_SCHEDULE: dict[str, dict[str, Any]] = {
         'task': 'core.tasks.get_coins_data_from_coingecko_and_store',
         'schedule': crontab(minute='*/1'),
     },
+    'populate_googlesheet_with_coins_data': {
+        'task': 'core.tasks.populate_googlesheet_with_coins_data',
+        'schedule': crontab(minute='*/1'),
+    },
 }
 
 

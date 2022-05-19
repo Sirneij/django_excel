@@ -2,6 +2,7 @@ virtualenv
 db.sqlite3
 celerybeat-schedule
 htmlcov
+*.json
 # Python compiled byte code
 __pycache__/
 .pytest_cache/

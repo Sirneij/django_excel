@@ -1,4 +1,6 @@
 from io import BytesIO
+from pathlib import Path
+from typing import Any
 
 import requests
 from celery import shared_task
@@ -6,6 +8,8 @@ from decouple import config
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.utils import timezone
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, Protection
 
@@ -90,3 +94,37 @@ def export_data_to_excel(user_email: str) -> None:
     )
     message.attach('latest-coin-list.xlsx', excelfile.getvalue(), 'application/vnd.ms-excel')
     message.send()
+
+
+@shared_task
+def populate_googlesheet_with_coins_data() -> None:
+    """Populate Googlesheet with the coin data from the database."""
+    base_path = Path(__file__).resolve().parent
+    scopes = ['https://www.googleapis.com/auth/spreadsheets']
+    spreadsheet_id = '1AFNyUKcqgwO-CCXRubcIALOC74yfV716Q5q57Ojjicc'
+    service_account_file = config('SERVICE_KEY_PATH', default=base_path / 'djangoexcel.json')
+    creds = None
+    creds = service_account.Credentials.from_service_account_file(service_account_file, scopes=scopes)
+
+    service = build('sheets', 'v4', credentials=creds)
+
+    # Call the Sheets API
+    sheet = service.spreadsheets()
+    coin_queryset = Coins.objects.all().order_by('rank')
+    data: list[Any] = []
+    for coin in coin_queryset:
+        data.append(
+            [
+                coin.name,
+                f'{coin.symbol}'.upper(),
+                coin.rank,
+                str(currency(coin.current_price)),
+                str(currency(coin.price_change_within_24_hours)),
+                str(currency(coin.market_cap)),
+                str(coin.total_supply),
+            ]
+        )
+    sheet.values().clear(spreadsheetId=spreadsheet_id, range='Coins!A2:G').execute()
+    sheet.values().append(
+        spreadsheetId=spreadsheet_id, range='Coins!A2:G2', valueInputOption='USER_ENTERED', body={'values': data}
+    ).execute()
