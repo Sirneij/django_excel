@@ -12,6 +12,6 @@ def currency(value):  # type: ignore
     try:
         locale.setlocale(locale.LC_ALL, 'en_NG.UTF-8')
     except (locale.Error, ValueError):
-        locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+        locale.setlocale(locale.LC_ALL, 'en_NG.UTF-8')
     loc = locale.localeconv()
     return locale.currency(decimal.Decimal(value), loc['currency_symbol'], grouping=True)  # type: ignore
