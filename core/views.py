@@ -10,7 +10,6 @@ from core.tasks import export_data_to_excel
 def index(request: HttpRequest) -> HttpResponse:
     """Index view."""
     coins = Coins.objects.all().order_by('rank')
-
     context: dict[str, str] = {
         'coin_data': coins,
     }

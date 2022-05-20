@@ -1,5 +1,4 @@
 from io import BytesIO
-from pathlib import Path
 from typing import Any
 
 import requests
@@ -99,17 +98,18 @@ def export_data_to_excel(user_email: str) -> None:
 @shared_task
 def populate_googlesheet_with_coins_data() -> None:
     """Populate Googlesheet with the coin data from the database."""
-    base_path = Path(__file__).resolve().parent
     scopes = ['https://www.googleapis.com/auth/spreadsheets']
-    spreadsheet_id = '1AFNyUKcqgwO-CCXRubcIALOC74yfV716Q5q57Ojjicc'
-    # service_account_file = config('SERVICE_KEY_PATH', default=base_path / 'djangoexcel.json')
-    service_account_file = base_path / 'djangoexcel.json'
+    spreadsheet_id = config('SPREADSHEET_ID', default='1AFNyUKcqgwO-CCXRubcIALOC74yfV716Q5q57Ojjicc')
+
+    url = config('SERVICE_KEY_PATH')
+    response = requests.get(url)
+    with open('core/djangoexcel.json', 'wb') as file:
+        file.write(response.content)
+
+    service_account_file = 'core/djangoexcel.json'
     creds = None
     creds = service_account.Credentials.from_service_account_file(service_account_file, scopes=scopes)
-
     service = build('sheets', 'v4', credentials=creds)
-
-    # Call the Sheets API
     sheet = service.spreadsheets()
     coin_queryset = Coins.objects.all().order_by('rank')
     data: list[Any] = []
