@@ -102,7 +102,8 @@ def populate_googlesheet_with_coins_data() -> None:
     base_path = Path(__file__).resolve().parent
     scopes = ['https://www.googleapis.com/auth/spreadsheets']
     spreadsheet_id = '1AFNyUKcqgwO-CCXRubcIALOC74yfV716Q5q57Ojjicc'
-    service_account_file = config('SERVICE_KEY_PATH', default=base_path / 'djangoexcel.json')
+    # service_account_file = config('SERVICE_KEY_PATH', default=base_path / 'djangoexcel.json')
+    service_account_file = base_path / 'djangoexcel.json'
     creds = None
     creds = service_account.Credentials.from_service_account_file(service_account_file, scopes=scopes)
 

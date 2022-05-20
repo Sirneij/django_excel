@@ -43,6 +43,6 @@ jobs:
         env:
           LC_ALL: en_NG.UTF-8
           LANG: en_NG.UTF-8
-          SERVICE_KEY_PATH: https://res.cloudinary.com/db4bs0vwi/raw/upload/v1653002538/djangoexcel_d0lnfe.json
+          # SERVICE_KEY_PATH: https://res.cloudinary.com/db4bs0vwi/raw/upload/v1653002538/djangoexcel_d0lnfe.json
         run: |
           py.test --nomigrations --reuse-db -W error::RuntimeWarning --cov=core
