@@ -43,7 +43,7 @@ def export_data_to_excel(user_email: str) -> None:
     excelfile = BytesIO()
     workbook = Workbook()
     workbook.remove(workbook.active)
-    worksheet = workbook.create_sheet(title='Latest Cryptocurrency Coins Data', index=1)
+    worksheet = workbook.create_sheet(title='Latest Cryptocurrency Coins', index=1)
     workbook.security.workbookPassword = config('PASSWORD', default='12345data')
     workbook.security.lockStructure = config('PROTECT', default=True, cast=bool)
     workbook.security.revisionsPassword = config('PASSWORD', default='12345data')

@@ -13,7 +13,7 @@ from core.tasks import (
 
 class CoinTasksTests(TestCase):
     def test_get_coins_data_from_coingecko_and_store(self):
-        '''Test get_coins_data_from_coingecko_and_store.'''
+        """Test get_coins_data_from_coingecko_and_store."""
 
         with patch('core.tasks.requests.get') as mock_get:
             mock_get.return_value.coin_data = [
@@ -33,30 +33,40 @@ class CoinTasksTests(TestCase):
 
         mock_get.assert_called_once()
 
-    # def test_populate_googlesheet_with_coins_data(self):
-    #     '''Test populate_googlesheet_with_coins_data.'''
+    def test_populate_googlesheet_with_coins_data(self):
+        """Test populate_googlesheet_with_coins_data."""
 
-    #     Coins.objects.create(
-    #         name='bitcoin', symbol='btc', current_price=12000000, price_change_within_24_hours=500, market_cap=210000000
-    #     )
-    #     Coins.objects.create(
-    #         name='etherum', symbol='eth', current_price=12000000, price_change_within_24_hours=500, market_cap=210000000
-    #     )
-    #     Coins.objects.create(
-    #         name='xrp', symbol='xrp', current_price=12000000, price_change_within_24_hours=500, market_cap=210000000
-    #     )
-
-    #     with patch('core.tasks.requests.get') as mock_get:
-    #         populate_googlesheet_with_coins_data()
-    #     mock_get.assert_called_once()
-
-    def test_export_data_to_excel(self):
-        '''Test export_data_to_excel task.'''
         Coins.objects.create(
             name='bitcoin', symbol='btc', current_price=12000000, price_change_within_24_hours=500, market_cap=210000000
         )
         Coins.objects.create(
             name='etherum', symbol='eth', current_price=12000000, price_change_within_24_hours=500, market_cap=210000000
+        )
+        Coins.objects.create(
+            name='xrp', symbol='xrp', current_price=12000000, price_change_within_24_hours=500, market_cap=210000000
+        )
+
+        with patch('core.tasks.build') as mock_build:
+            with patch('core.tasks.service_account.Credentials') as mock_service_acount_credentials:
+                mock_service_acount_credentials.from_service_account_info.return_value = '123'
+                mock_build.return_value.spreadsheets.return_value.values.return_value.append.return_value.execute.return_value = {
+                    'values': []
+                }
+                populate_googlesheet_with_coins_data()
+
+        mock_build.assert_called_once()
+
+    def test_export_data_to_excel(self):
+        """Test export_data_to_excel task."""
+        Coins.objects.create(
+            name='tron', symbol='tron', current_price=12000000, price_change_within_24_hours=500, market_cap=210000000
+        )
+        Coins.objects.create(
+            name='ethers',
+            symbol='ethers',
+            current_price=12000000,
+            price_change_within_24_hours=500,
+            market_cap=210000000,
         )
         Coins.objects.create(
             name='xrp', symbol='xrp', current_price=12000000, price_change_within_24_hours=500, market_cap=210000000
