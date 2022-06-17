@@ -1,5 +1,6 @@
+from datetime import datetime
 from io import BytesIO
-from typing import Any
+from typing import Any, Optional
 
 import requests
 from celery import shared_task
@@ -98,23 +99,52 @@ def export_data_to_excel(user_email: str) -> None:
 @shared_task
 def populate_googlesheet_with_coins_data() -> None:
     """Populate Googlesheet with the coin data from the database."""
-    scopes = ['https://www.googleapis.com/auth/spreadsheets']
-    spreadsheet_id = config('SPREADSHEET_ID', default='1AFNyUKcqgwO-CCXRubcIALOC74yfV716Q5q57Ojjicc')
-
-    url = config('SERVICE_KEY_PATH')
-    response = requests.get(url)
+    response = requests.get(settings.GOOGLE_API_SERVICE_KEY_URL)
     with open('core/djangoexcel.json', 'wb') as file:
         file.write(response.content)
-
     service_account_file = 'core/djangoexcel.json'
-    creds = None
-    creds = service_account.Credentials.from_service_account_file(service_account_file, scopes=scopes)
+    creds = service_account.Credentials.from_service_account_file(
+        service_account_file, scopes=settings.GOOGLE_API_SCOPE
+    )
     service = build('sheets', 'v4', credentials=creds)
     sheet = service.spreadsheets()
+
+    sheet_metadata_values = sheet.get(spreadsheetId=settings.SPREADSHEET_ID).execute()
+    csheets = sheet_metadata_values.get('sheets', '')
+    datetime_format = '%a %b %d %Y %Hh%Mm'
+    if csheets:
+        for csheet in csheets:
+            sheet_title = csheet.get('properties', {}).get('title', '')
+            date_segment_of_the_title = ' '.join(sheet_title.split(' ')[0:5]).strip()
+            parsed_datetime: Optional[Any] = None
+            try:
+                parsed_datetime = datetime.strptime(date_segment_of_the_title, datetime_format)
+            except ValueError as err:
+                print(err)
+            now = timezone.now().strftime(datetime_format)
+            if (
+                parsed_datetime
+                and (datetime.strptime(now, datetime_format) - parsed_datetime).seconds
+                > settings.SPREADSHEET_TAB_EXPIRY
+            ):
+                sheet_id = csheet.get('properties', {}).get('sheetId', 0)
+                batch_update_request_body = {'requests': [{'deleteSheet': {'sheetId': sheet_id}}]}
+                sheet.batchUpdate(spreadsheetId=settings.SPREADSHEET_ID, body=batch_update_request_body).execute()
+
     coin_queryset = Coins.objects.all().order_by('rank')
-    data: list[Any] = []
+    coin_data_list: list[Any] = [
+        [
+            'Name',
+            'Symbol',
+            'Rank',
+            'Current price',
+            'Price change',
+            'Market cap',
+            'Total supply',
+        ]
+    ]
     for coin in coin_queryset:
-        data.append(
+        coin_data_list.append(
             [
                 coin.name,
                 f'{coin.symbol}'.upper(),
@@ -125,7 +155,25 @@ def populate_googlesheet_with_coins_data() -> None:
                 str(coin.total_supply),
             ]
         )
-    sheet.values().clear(spreadsheetId=spreadsheet_id, range='Coins!A2:G').execute()
+
+    new_sheet_title = f'{timezone.now().strftime(datetime_format)} Coin data'
+    batch_update_request_body = {
+        'requests': [
+            {
+                'addSheet': {
+                    'properties': {
+                        'title': new_sheet_title,
+                        'tabColor': {'red': 0.968627451, 'green': 0.576470588, 'blue': 0.101960784},
+                        'gridProperties': {'rowCount': len(coin_data_list), 'columnCount': 7},
+                    }
+                }
+            }
+        ]
+    }
+    sheet.batchUpdate(spreadsheetId=settings.SPREADSHEET_ID, body=batch_update_request_body).execute()
     sheet.values().append(
-        spreadsheetId=spreadsheet_id, range='Coins!A2:G2', valueInputOption='USER_ENTERED', body={'values': data}
+        spreadsheetId=settings.SPREADSHEET_ID,
+        range=f"'{new_sheet_title}'!A1:G1",
+        valueInputOption='USER_ENTERED',
+        body={'values': coin_data_list},
     ).execute()

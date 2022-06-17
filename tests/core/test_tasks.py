@@ -1,7 +1,9 @@
+from datetime import timedelta
 from unittest.mock import patch
 
 from django.core import mail
 from django.test import TestCase
+from django.utils import timezone
 
 from core.models import Coins
 from core.tasks import (
@@ -49,10 +51,29 @@ class CoinTasksTests(TestCase):
         with patch('core.tasks.build') as mock_build:
             with patch('core.tasks.service_account.Credentials') as mock_service_acount_credentials:
                 mock_service_acount_credentials.from_service_account_info.return_value = '123'
-                mock_build.return_value.spreadsheets.return_value.values.return_value.append.return_value.execute.return_value = {
-                    'values': []
+                datetime_format = '%a %b %d %Y %Hh%Mm'
+                mock_build.return_value.spreadsheets.return_value.get.return_value.execute.return_value = {
+                    'spreadsheetId': '1AFNyUKcqgwO-CCXRubcIALOC74yfV716Q5q57Ojjicc',
+                    'sheets': [
+                        {
+                            'properties': {
+                                'sheetId': 0,
+                                'title': 'Coins',
+                            }
+                        },
+                        {
+                            'properties': {
+                                'sheetId': 1305535527,
+                                'title': f'{timezone.now().strftime(datetime_format)} Coin data',
+                            }
+                        },
+                    ],
+                    'spreadsheetUrl': 'https://docs.google.com/spreadsheets/d/1AFNyUKcqgwO-CCXRubcIALOC74yfV716Q5q57Ojjicc/edit',
                 }
-                populate_googlesheet_with_coins_data()
+
+                today_datetime_now = timezone.now() + timedelta(minutes=7)
+                with patch('django.utils.timezone.now', return_value=today_datetime_now):
+                    populate_googlesheet_with_coins_data()
 
         mock_build.assert_called_once()
 

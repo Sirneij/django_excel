@@ -151,7 +151,7 @@ CELERY_BEAT_SCHEDULE: dict[str, dict[str, Any]] = {
     },
     'populate_googlesheet_with_coins_data': {
         'task': 'core.tasks.populate_googlesheet_with_coins_data',
-        'schedule': crontab(minute='*/1'),
+        'schedule': crontab(minute='*/2'),
     },
 }
 
@@ -159,6 +159,12 @@ CELERY_BEAT_SCHEDULE: dict[str, dict[str, Any]] = {
 CELERY_ALWAYS_EAGER = True
 CELERY_EAGER_PROPAGATES = True
 BROKER_BACKEND = 'memory'
+
+# Google API Configurations
+GOOGLE_API_SCOPE = ['https://www.googleapis.com/auth/spreadsheets']
+SPREADSHEET_ID = config('SPREADSHEET_ID', default='1AFNyUKcqgwO-CCXRubcIALOC74yfV716Q5q57Ojjicc')
+GOOGLE_API_SERVICE_KEY_URL = config('SERVICE_KEY_PATH')
+SPREADSHEET_TAB_EXPIRY = config('SPREADSHEET_TAB_EXPIRY', default=360, cast=int)
 
 # Email configuration
 ADMINS = (('Admin', config('EMAIL_HOST_USER', default='no-reply@django_excel.herokuapp.com')),)
