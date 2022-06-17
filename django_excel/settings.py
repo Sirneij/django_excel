@@ -140,7 +140,7 @@ DEFAULT_AUTO_FIELD: str = 'django.db.models.BigAutoField'
 
 
 CELERY_BROKER_URL: str = config('REDIS_URL', default='amqp://localhost')
-CELERY_RESULT_BACKEND: str = config('REDIS_URL', default='')
+# CELERY_RESULT_BACKEND: str = config('REDIS_URL', default='')
 CELERY_ACCEPT_CONTENT: list[str] = ['application/json']
 CELERY_TASK_SERIALIZER: str = 'json'
 CELERY_RESULT_SERIALIZER: str = 'json'
