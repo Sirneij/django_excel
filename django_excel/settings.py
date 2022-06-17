@@ -163,7 +163,7 @@ BROKER_BACKEND = 'memory'
 # Google API Configurations
 GOOGLE_API_SCOPE = ['https://www.googleapis.com/auth/spreadsheets']
 SPREADSHEET_ID = config('SPREADSHEET_ID', default='1AFNyUKcqgwO-CCXRubcIALOC74yfV716Q5q57Ojjicc')
-GOOGLE_API_SERVICE_KEY_URL = config('SERVICE_KEY_PATH')
+GOOGLE_API_SERVICE_KEY_URL = config('SERVICE_KEY_PATH', default='')
 SPREADSHEET_TAB_EXPIRY = config('SPREADSHEET_TAB_EXPIRY', default=360, cast=int)
 
 # Email configuration
