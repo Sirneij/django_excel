@@ -14,4 +14,7 @@ def currency(value):  # type: ignore
     except (locale.Error, ValueError):
         locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
     loc = locale.localeconv()
-    return locale.currency(decimal.Decimal(value), loc['currency_symbol'], grouping=True)  # type: ignore
+    returned_format = (
+        locale.currency(decimal.Decimal(value), loc['currency_symbol'], grouping=True) if value else '₦0.0'
+    )
+    return returned_format  # type: ignore
