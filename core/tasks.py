@@ -112,7 +112,7 @@ def populate_googlesheet_with_coins_data() -> None:
     sheet_metadata_values = sheet.get(spreadsheetId=settings.SPREADSHEET_ID).execute()
     csheets = sheet_metadata_values.get('sheets', '')
     datetime_format = '%a %b %d %Y %Hh%Mm'
-    if csheets:
+    if csheets and len(csheets) > 1:
         for csheet in csheets:
             sheet_title = csheet.get('properties', {}).get('title', '')
             date_segment_of_the_title = ' '.join(sheet_title.split(' ')[0:5]).strip()
