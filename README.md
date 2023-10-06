@@ -6,7 +6,9 @@
 ![Stars](https://img.shields.io/github/stars/Sirneij/django_excel)
 ![License](https://img.shields.io/github/license/Sirneij/django_excel)
 
-This repository accompanies [this tutorial][1] on dev.to. It has been deployed to heroku and can be accessed live via [this link][2].
+This repository accompanies [this tutorial][1] on dev.to. It has been deployed to Heroku and can be accessed live via [this link][2].
+
+## NOTE: If you use Coingecko's API, when you use my code, `CGSIRNEIJ`, I get some commissions. That can be a good way to help me.
 
 ## Run locally
 
