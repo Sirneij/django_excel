@@ -5,7 +5,7 @@ htmlcov
 *.json
 .env
 # Python compiled byte code
-__pycache__/
+__pycache__/*
 .pytest_cache/
 *.pyc
 .idea

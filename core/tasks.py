@@ -1,6 +1,8 @@
+import logging
+import time
 from datetime import datetime
 from io import BytesIO
-from typing import Any, Optional
+from typing import Any, Generator, Optional
 
 import requests
 from celery import shared_task
@@ -13,17 +15,18 @@ from googleapiclient.discovery import build
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, Protection
 
-from core.models import Coins
+from core.models import Coins, FullCoin
 from core.templatetags.custom_tags import currency
+
+logger = logging.getLogger(__name__)
 
 
 @shared_task
 def get_coins_data_from_coingecko_and_store() -> None:
     """Fetch data from coingecko api and store."""
-    base_url = 'https://api.coingecko.com/api/v3/coins/'
     market_currency_order = 'markets?vs_currency=ngn&order=market_cap_desc&'
     per_page = 'per_page=250&page=1&sparkline=false'
-    final_url = f'{base_url}{market_currency_order}{per_page}'
+    final_url = f'{settings.BASE_API_URL}{market_currency_order}{per_page}'
 
     coin_data = requests.get(final_url).json()
 
@@ -177,3 +180,213 @@ def populate_googlesheet_with_coins_data() -> None:
         valueInputOption='USER_ENTERED',
         body={'values': coin_data_list},
     ).execute()
+
+
+def build_api_url(page: int) -> str:
+    """Build the API URL."""
+    market_currency_order = 'markets?vs_currency=usd&order=market_cap_desc&'
+    per_page = f'per_page=50&page={page}&sparkline=false'
+    return f'{settings.BASE_API_URL}/coins/{market_currency_order}{per_page}'
+
+
+def store_data(data_list: list[dict]) -> None:
+    """Store the data in bulk."""
+    # Get existing coins
+    existing_coins = {coin.coin_id: coin for coin in FullCoin.objects.filter(coin_id__in=[d['id'] for d in data_list])}
+
+    coins_to_create = []
+    coins_to_update = []
+
+    for data in data_list:
+        if data['id'] in existing_coins:
+            # Update existing coin
+            coin = existing_coins[data['id']]
+            coins_to_update.append(coin)
+        else:
+            # Create new coin
+            coin = FullCoin(
+                coin_id=data['id'],
+                symbol=data['symbol'],
+                name=data['name'],
+                image=data['image'],
+                current_price=data['current_price'],
+                market_cap=data['market_cap'],
+                market_cap_rank=data['market_cap_rank'],
+                fully_diluted_valuation=data.get('fully_diluted_valuation'),
+                total_volume=data['total_volume'],
+                high_24h=data['high_24h'],
+                low_24h=data['low_24h'],
+                price_change_24h=data['price_change_24h'],
+                price_change_percentage_24h=data['price_change_percentage_24h'],
+                market_cap_change_24h=data['market_cap_change_24h'],
+                market_cap_change_percentage_24h=data['market_cap_change_percentage_24h'],
+                circulating_supply=data['circulating_supply'],
+                total_supply=data.get('total_supply'),
+                max_supply=data.get('max_supply'),
+                ath=data['ath'],
+                ath_change_percentage=data['ath_change_percentage'],
+                ath_date=data['ath_date'],
+                atl=data['atl'],
+                atl_change_percentage=data['atl_change_percentage'],
+                atl_date=data['atl_date'],
+                last_updated=data['last_updated'],
+            )
+            coins_to_create.append(coin)
+            continue
+
+        # Update fields for existing coins
+        coin.symbol = data['symbol']
+        coin.name = data['name']
+        coin.image = data['image']
+        coin.current_price = data['current_price']
+        coin.market_cap = data['market_cap']
+        coin.market_cap_rank = data['market_cap_rank']
+        coin.fully_diluted_valuation = data.get('fully_diluted_valuation')  # Using get() for nullable fields
+        coin.total_volume = data['total_volume']
+        coin.high_24h = data['high_24h']
+        coin.low_24h = data['low_24h']
+        coin.price_change_24h = data['price_change_24h']
+        coin.price_change_percentage_24h = data['price_change_percentage_24h']
+        coin.market_cap_change_24h = data['market_cap_change_24h']
+        coin.market_cap_change_percentage_24h = data['market_cap_change_percentage_24h']
+        coin.circulating_supply = data['circulating_supply']
+        coin.total_supply = data.get('total_supply')  # Using get() for nullable fields
+        coin.max_supply = data.get('max_supply')  # Using get() for nullable fields
+        coin.ath = data['ath']
+        coin.ath_change_percentage = data['ath_change_percentage']
+        coin.ath_date = data['ath_date']
+        coin.atl = data['atl']
+        coin.atl_change_percentage = data['atl_change_percentage']
+        coin.atl_date = data['atl_date']
+        coin.last_updated = data['last_updated']
+
+    # Bulk create new coins with ignore_conflicts=True
+    if coins_to_create:
+        FullCoin.objects.bulk_create(coins_to_create, ignore_conflicts=True)
+
+    # Bulk update existing coins
+    if coins_to_update:
+        FullCoin.objects.bulk_update(
+            coins_to_update,
+            fields=[
+                'symbol',
+                'name',
+                'image',
+                'current_price',
+                'market_cap',
+                'market_cap_rank',
+                'fully_diluted_valuation',
+                'total_volume',
+                'high_24h',
+                'low_24h',
+                'price_change_24h',
+                'price_change_percentage_24h',
+                'market_cap_change_24h',
+                'market_cap_change_percentage_24h',
+                'circulating_supply',
+                'total_supply',
+                'max_supply',
+                'ath',
+                'ath_change_percentage',
+                'ath_date',
+                'atl',
+                'atl_change_percentage',
+                'atl_date',
+                'last_updated',
+            ],
+        )
+
+
+def fetch_coins_iteratively() -> Generator[dict, None, None]:
+    """Fetch coins data from API using generator."""
+    page = 1
+    while True:
+        try:
+            url = build_api_url(page)
+            response = requests.get(url)
+            coin_data = response.json()
+
+            # Check for rate limit response
+            if isinstance(coin_data, dict) and coin_data.get('status', {}).get('error_code') == 429:
+                logger.warning("Rate limit exceeded. Waiting 60 seconds...")
+                time.sleep(60)
+                continue
+
+            # Check for empty response (end of pagination)
+            if not coin_data:
+                break
+
+            yield from coin_data
+            logger.info(f"Fetched page {page} with {len(coin_data)} coins")
+            page += 1
+
+            time.sleep(1)  # Be nice to the API
+
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Request failed on page {page}: {e}")
+            raise
+
+
+def fetch_coins_recursively(page: int = 1) -> Generator[dict, None, None]:
+    """Fetch coins data from API recursively using generator."""
+    try:
+        url = build_api_url(page)
+        response = requests.get(url)
+        coin_data = response.json()
+
+        # Check for rate limit response
+        if isinstance(coin_data, dict) and coin_data.get('status', {}).get('error_code') == 429:
+            logger.warning("Rate limit exceeded. Waiting 60 seconds...")
+            time.sleep(60)
+            yield from fetch_coins_recursively(page)
+            return
+
+        # Base case: empty response (end of pagination)
+        if not coin_data:
+            return
+
+        # Process current page
+        yield from coin_data
+        logger.info(f"Fetched page {page} with {len(coin_data)} coins")
+
+        # Be nice to the API
+        time.sleep(1)
+
+        # Recursive case: fetch next page
+        yield from fetch_coins_recursively(page + 1)
+
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Request failed on page {page}: {e}")
+        raise
+
+
+@shared_task(
+    bind=True,
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    retry_backoff_max=600,
+    max_retries=5,
+)
+def get_full_coin_data_iteratively_for_page(self) -> None:
+    """Get full coin data iteratively for each page."""
+    try:
+        # Use list comprehension to collect coins in batches
+        batch_size = 100
+        coins_batch = []
+
+        for coin in fetch_coins_iteratively():
+            coins_batch.append(coin)
+
+            if len(coins_batch) >= batch_size:
+                logger.info(f"Processing batch of {len(coins_batch)} coins")
+                store_data(coins_batch)
+                coins_batch = []
+
+        # Process remaining coins
+        if coins_batch:
+            logger.info(f"Processing final batch of {len(coins_batch)} coins")
+            store_data(coins_batch)
+
+    except Exception as e:
+        logger.error(f"Failed to process coins: {e}")
+        raise self.retry(exc=e)

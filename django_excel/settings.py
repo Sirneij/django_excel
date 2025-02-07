@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
-
 import os
 from pathlib import Path
 from typing import Any
@@ -139,8 +138,9 @@ STATIC_ROOT: str = BASE_DIR / 'staticfiles'
 DEFAULT_AUTO_FIELD: str = 'django.db.models.BigAutoField'
 
 
-CELERY_BROKER_URL: str = config('REDIS_URL', default='amqp://localhost')
-# CELERY_RESULT_BACKEND: str = config('REDIS_URL', default='')
+CELERY_BROKER_URL: str = config('REDIS_URL', default='redis://localhost:6379/0')
+CELERY_RESULT_BACKEND: str = config('REDIS_URL', default='redis://localhost:6379/0')
+
 CELERY_ACCEPT_CONTENT: list[str] = ['application/json']
 CELERY_TASK_SERIALIZER: str = 'json'
 CELERY_RESULT_SERIALIZER: str = 'json'
@@ -152,6 +152,10 @@ CELERY_BEAT_SCHEDULE: dict[str, dict[str, Any]] = {
     'populate_googlesheet_with_coins_data': {
         'task': 'core.tasks.populate_googlesheet_with_coins_data',
         'schedule': crontab(minute='*/2'),
+    },
+    'get_full_coin_data_iteratively_for_page': {
+        'task': 'core.tasks.get_full_coin_data_iteratively_for_page',
+        'schedule': crontab(minute='*/3'),
     },
 }
 
@@ -199,3 +203,8 @@ if not DEBUG:
 
     db_from_env = dj_database_url.config(conn_max_age=500)
     DATABASES['default'].update(db_from_env)
+
+
+# ==============================================================================
+# COINGECKO API CONFIGURATIONS
+BASE_API_URL: str = 'https://api.coingecko.com/api/v3'
