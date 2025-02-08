@@ -6,7 +6,7 @@
 ![Stars](https://img.shields.io/github/stars/Sirneij/django_excel)
 ![License](https://img.shields.io/github/license/Sirneij/django_excel)
 
-This repository accompanies [this tutorial][1] on dev.to. It has been deployed to Heroku and can be accessed live via [this link][2].
+This repository accompanies a [tutorial on my blog][3] and [this series][1] on dev.to. It has been deployed to Heroku and can be accessed live via [this link][2].
 
 ## NOTE: If you use Coingecko's API, when you use my code, `CGSIRNEIJ`, I get some commissions. That can be a good way to help me.
 
@@ -49,3 +49,4 @@ pytest --nomigrations --reuse-db -W error::RuntimeWarning --cov=core --cov-repor
 
 [1]: https://dev.to/sirneij/django-and-openpyxl-extracting-and-sending-django-model-data-as-excel-file-xlsx-ll3 "Django and Openpyxl: Extracting and Sending Django model data as excel file (.xlsx)"
 [2]: https://django-excel-export.herokuapp.com/ "Live app version"
+[3]: https://johnowolabiidogun.dev/blog/consuming-paginated-api-using-periodic-celery-tasks-in-django-54017c/679991536ce61096256ff5c3 "Consuming paginated API using periodic Celery tasks in Django"
